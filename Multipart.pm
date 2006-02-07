@@ -9,7 +9,7 @@
 #
 # Version
 #      $Source: D:/src/perl/Net/SMTP/RCS/Multipart.pm $
-#      $Revision: 1.5.1 $
+#      $Revision: 1.5.4 $
 #      $State: Exp $
 #
 # Description:
@@ -23,12 +23,15 @@ use vars qw($VERSION @ISA);
 use Carp;
 use MIME::Base64;
 use Net::SMTP;
+use MIME::Types;
+use POSIX qw( strftime );
 
 @ISA = qw(Net::SMTP);
 
 our($b);
+our($mimeType);
 
-our $VERSION = sprintf("%s", q$Revision: 1.5.1 $ =~ /([\d.]+)/);
+our $VERSION = sprintf("%s", q$Revision: 1.5.4 $ =~ /([\d.]+)/);
 
 
 sub new {
@@ -41,6 +44,7 @@ sub new {
 
 sub _init {
     my $self = shift;
+    $mimeType = new MIME::Types;
     # Create arbitrary boundary text
     my ($i,$n,@chrs);
     $b = "";
@@ -91,6 +95,7 @@ sub Header {
   	$self->mail($arg{From});    # Sender Mail Address
     $self->to(@to);             # Recipient Mail Addresses
     $self->data();
+    $self->datasend(strftime("Date: %a, %d %b %Y %H:%M:%S %z\n",localtime()));
     $self->datasend("To: $toString\n");
     $self->datasend("Cc: $ccString\n") if ($ccString);
     $self->datasend("Subject: $arg{Subj}\n");
@@ -118,14 +123,18 @@ sub FileAttach {
       } else {
           $displayname = $file;
       }
-	  unless (-f $file) {
-        carp 'Net::SMTP::Multipart:FileAttach: unable to find file $file';
-        next;
+      my($bytesread,$buffer,$data,$total,$fh);
+      if (!ref($file)) {
+        unless (-f $file) {
+          carp "Net::SMTP::Multipart:FileAttach: unable to find file $file";
+          next;
+        }
+        open($fh,"$file") || carp "Net::SMTP::Multipart:FileAttach: failed to open $file\n";
+      } else {
+        $fh = $file;
       }
-      my($bytesread,$buffer,$data,$total);
-      open(FH,"$file") || carp "Net::SMTP::Multipart:FileAttach: failed to open $file\n";
-      binmode(FH);
-      while ( ($bytesread=sysread(FH,$buffer, 1024))==1024 ){
+      binmode($fh);
+      while ( ($bytesread=sysread($fh,$buffer, 1024))==1024 ){
         $total += $bytesread;
         # 500K Limit on Upload Images to prevent buffer overflow
         #if (($total/1024) > 500){
@@ -140,24 +149,23 @@ sub FileAttach {
         $total += $bytesread ;
       }
       #print "File Size: $total bytes\n";
-      close FH;
+      close $fh;
 
       if ($data){
+        my $type = $mimeType->mimeTypeOf($displayname);
         $self->datasend("--$b\n");
-        $self->datasend("Content-Type: ; name=\"$displayname\"\n");
+        $self->datasend("Content-Type: $type; name=\"$displayname\"\n");
         $self->datasend("Content-Transfer-Encoding: base64\n");
         $self->datasend("Content-Disposition: attachment; =filename=\"$displayname\"\n\n");
         $self->datasend(encode_base64($data));
-        $self->datasend("--$b\n");
+        $self->datasend("\n");
       }
     }
 }
 
-
-
 sub End {
     my $self = shift;
-    $self->datasend(sprintf"\n--%s--\n\n",$b);                 # send boundary end message
+    $self->datasend(sprintf"\n--%s--\n\n",$b);               # send boundary end message
     foreach my $epl (@_) {
       $self->datasend("$epl");                               # send epilogue text
     }
@@ -278,7 +286,9 @@ populates the text part of the message.
 This method includes a file (identified in the argument when this is called)
 within an encoded part of the message. Alternatively, this function can also be
 called with a reference to a two item array with a display filename as it's
-first element, and the actual filename as it's second.
+first element, and the actual filename as it's second.  Just to throw
+something else into the mix here, you can also specify an open file
+handle in place of the filename.
 
 =item B<End>
 
@@ -293,6 +303,8 @@ the class instance destroyed.
 C<Carp>
 
 C<MIME::Base64>
+
+C<MIME::Types>
 
 C<Net::SMTP>
 
@@ -319,6 +331,7 @@ C<vars>
 =head1 AUTHOR
 
 Dave Roberts
+
 Orien Vandenbergh
 
 =head1 SUPPORT

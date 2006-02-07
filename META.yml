@@ -1,7 +1,7 @@
 # http://module-build.sourceforge.net/META-spec.html
 #XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
 name:         Net-SMTP-Multipart
-version:      1.5.1
+version:      1.5.4
 version_from: Multipart.pm
 installdirs:  site
 requires:
