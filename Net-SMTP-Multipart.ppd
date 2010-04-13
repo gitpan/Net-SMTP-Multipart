@@ -1,0 +1,11 @@
+<SOFTPKG NAME="Net-SMTP-Multipart" VERSION="1,6,0,0">
+    <TITLE>Net-SMTP-Multipart</TITLE>
+    <ABSTRACT></ABSTRACT>
+    <AUTHOR></AUTHOR>
+    <IMPLEMENTATION>
+        <DEPENDENCY NAME="MIME-Base64" VERSION="0,0,0,0" />
+        <DEPENDENCY NAME="Net-SMTP" VERSION="0,0,0,0" />
+        <OS NAME="MSWin32" />
+        <CODEBASE HREF="Net-SMTP-Multipart-1.6-PPM.tar.gz" />
+    </IMPLEMENTATION>
+</SOFTPKG>
