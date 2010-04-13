@@ -32,14 +32,14 @@ WriteMakefile(
     'PREREQ_PM'		=> {
       MIME::Base64       => 0,
       Net::SMTP          => 0,
-	  Test				 => 0,
   }, # e.g., Module::Name => 1.1
     'dist' => {
       ZIP      => 'wzzip.exe',
       ZIPFLAGS  => "-P",
     },
+    HTMLLIBPODS => { 'Multipart.pm'  => 'blib/html/site/lib/Net/SMTP/Multipart.html'},
     MAN3PODS    => { 'Multipart.pm'  => 'blib/man3/Net::SMTP::Multipart.3' },
-    PM          => { 'Multipart.pm'  => '$(INST_LIBDIR)/Multipart.pm'},
+    PM          => { 'Multipart.pm'  => '$(INST_LIBDIR)/Multipart.pm'}
 );
 
 package MY;
